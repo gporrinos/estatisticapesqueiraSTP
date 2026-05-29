@@ -3,9 +3,32 @@
 
 #' @export
 create_ui <- function(header)
-  shiny::fluidPage(
-    shiny::titlePanel(header),
-    shiny::uiOutput("page")
+  bs4Dash::dashboardPage(
+    header = bs4Dash::dashboardHeader(header),
+    sidebar = bs4Dash::dashboardSidebar(disable = TRUE),
+    body = bs4Dash::dashboardBody(
+      tags$head(
+        tags$style(HTML("
+          .modal-dialog {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+            margin: 0;
+          }
+
+          .modal-content {
+            height: 100vh;
+            border-radius: 0;
+          }
+
+          .modal-body {
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+          }
+        "))
+      ),
+      shiny::uiOutput("page")
+    )
   )
 
 
@@ -129,8 +152,9 @@ create_server <- function(wd = getwd(),
                       shiny::actionButton("run_4", rv$messages$delete_processed_instances),
                       shiny::br(), shiny::br(),
                       shiny::actionButton("run_5", rv$messages$estimate_catch),
-                      shiny::hr(),
-                      shiny::verbatimTextOutput("log_output")
+                      shiny::hr(), shiny::br(),
+                      shiny::actionButton("open_artfish_ui_modal", rv$messages$visualize_artfish_results)
+                      #shiny::verbatimTextOutput("log_output")
                     )
                   }
                 }
@@ -503,7 +527,24 @@ create_server <- function(wd = getwd(),
 
       })
 
+    shiny::observeEvent(input$open_artfish_ui_modal, {
 
+      #read back Artfish report
+      estimates = reactive({ readxl::read_excel(file.path("artfish", paste0("catch_and_effort_report.", config[["fileformat"]]))) })
+
+      artfishr::artfish_shiny_overview_server("artfish_overview", lang = rv$language, estimate = estimates, effort_source = "boat_counting", minor_strata = "minor_stratum")
+
+      shiny::showModal(
+        shiny::modalDialog(
+          title = rv$messages$visualize_artfish_results,
+          artfishr::artfish_shiny_overview_ui("artfish_overview"),
+          easyClose = TRUE,
+          footer = modalButton("Close"),
+          size = "l"
+        )
+      )
+
+    })
 
 
 

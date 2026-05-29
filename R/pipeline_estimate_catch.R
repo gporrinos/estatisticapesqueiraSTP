@@ -400,6 +400,14 @@ export_artfish <- function(
   effort <- effort[!is.na(effort$fleet_engagement_number) &
                      !is.na(effort$fleet_engagement_number),]
 
+  #--------------------------------------------------------------------
+  if(!dir.exists("artfish_inputs")) dir.create("artfish_inputs")
+  readr::write_csv(effort, "artfish_inputs/effort.csv")
+  readr::write_csv(active_days, "artfish_inputs/active_days.csv")
+  readr::write_csv(active_vessels, "artfish_inputs/active_vessels.csv")
+  readr::write_csv(landings, "artfish_inputs/landings.csv")
+  #--------------------------------------------------------------------
+
   if(!dir.exists("artfish")) dir.create("artfish")
 
   #activity coefficient
@@ -408,6 +416,9 @@ export_artfish <- function(
     effort_source = "boat_counting",
     minor_strata = "minor_stratum"
   )
+
+
+
   writeDAT(data = activity_coefficient,
            fileformat = config[["fileformat"]],
            filepath = file.path("artfish",
@@ -471,7 +482,28 @@ export_artfish <- function(
            csv_separator = config[["csv_separator"]],
            sheetname = "catch_estimate_by_species")
 
+  # Artfish C&E Report
+  catch_and_effort_report = artfishr::compute_report(
+    effort = effort,
+    effort_source = "boat_counting",
+    active_days = active_days,
+    active_vessels = active_vessels,
+    active_vessels_strategy = "closest",
+    landings = landings,
+    minor_strata = "minor_stratum"
+  )
+  catch_and_effort_report$species_label = catch_and_effort_report$species
+  catch_and_effort_report$fishing_unit_label = catch_and_effort_report$fishing_unit
+  catch_and_effort_report$date = lubridate::make_date(catch_and_effort_report$year, catch_and_effort_report$month, 1)
 
+  writeDAT(data = catch_and_effort_report,
+           fileformat = config[["fileformat"]],
+           filepath = file.path("artfish",
+                                paste0("catch_and_effort_report.",
+                                       config[["fileformat"]])
+           ),
+           csv_separator = config[["csv_separator"]],
+           sheetname = "catch_and_effort_report")
 
 
 }

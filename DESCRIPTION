@@ -18,4 +18,5 @@ Imports:
     RSQLite,
     shiny,
     callr,
-    shinyFiles
+    shinyFiles,
+    bs4Dash

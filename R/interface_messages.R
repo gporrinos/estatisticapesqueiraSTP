@@ -157,7 +157,14 @@ interface_messages <- function(language){
         en = "Estimate catch",
         pt = "Estimar capturas",
         es = "Estimar capturas",
-        fr = "Estimer les captures")
+        fr = "Estimer les captures"),
+    visualize_artfish_results =
+      data.frame(
+        en = "Visualize Artfish results",
+        pt = "Visualizar resultados do Artfish",
+        es = "Visualizar resultados Artfish",
+        fr = "Visualiser les résultats Artfish"
+      )
   ), function(x) x[1, which(colnames(x) == language)])
 }
 
