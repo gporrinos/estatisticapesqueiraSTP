@@ -163,8 +163,26 @@ interface_messages <- function(language){
         en = "Visualize Artfish results",
         pt = "Visualizar resultados do Artfish",
         es = "Visualizar resultados Artfish",
-        fr = "Visualiser les résultats Artfish"
-      )
+        fr = "Visualiser les résultats Artfish"),
+    artfishr_ui_overview =
+      data.frame(
+        en = "Overview",
+        pt = "Visão geral",
+        es = "Visión general",
+        fr = "Aperçu"),
+    artfishr_ui_fu =
+      data.frame(
+        en = "By fishing unit",
+        pt = "Por unidade de pesca",
+        es = "Por unidad de pesca",
+        fr = "Par unité de pêche"),
+    artfishr_ui_sp =
+      data.frame(
+        en = "By species",
+        pt = "Por espécie",
+        es = "Por especie",
+        fr = "Par espèce")
+
   ), function(x) x[1, which(colnames(x) == language)])
 }
 

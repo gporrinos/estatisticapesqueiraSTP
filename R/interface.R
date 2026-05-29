@@ -531,13 +531,30 @@ create_server <- function(wd = getwd(),
 
       #read back Artfish report
       estimates = reactive({ readxl::read_excel(file.path("artfish", paste0("catch_and_effort_report.", config[["fileformat"]]))) })
+      effort_source = reactive({ "boat_counting" })
+      minor_strata = reactive({ "minor_stratum" })
 
-      artfishr::artfish_shiny_overview_server("artfish_overview", lang = rv$language, estimate = estimates, effort_source = "boat_counting", minor_strata = "minor_stratum")
+      artfishr::artfish_shiny_overview_server("artfish_overview", lang = rv$language, estimate = estimates)
+      artfishr::artfish_shiny_fishing_unit_server("artfish_fu", lang = rv$language, estimate = estimates, effort_source = effort_source, minor_strata = minor_stratum)
+      artfishr::artfish_shiny_species_server("artfish_sp", lang = rv$language, estimate = estimates, effort_source = effort_source, minor_strata = minor_stratum)
 
       shiny::showModal(
         shiny::modalDialog(
           title = rv$messages$visualize_artfish_results,
-          artfishr::artfish_shiny_overview_ui("artfish_overview"),
+          bs4Dash::tabsetPanel(
+            shiny::tabPanel(
+              title = rv$messages$artfishr_ui_overview,
+              artfishr::artfish_shiny_overview_ui("artfish_overview")
+            ),
+            shiny::tabPanel(
+              title = rv$messages$artfishr_ui_fu,
+              artfishr::artfish_shiny_fishing_unit_ui("artfish_fu")
+            ),
+            shiny::tabPanel(
+              title = rv$messages$artfishr_ui_sp,
+              artfishr::artfish_shiny_species_ui("artfish_sp")
+            )
+          ),
           easyClose = TRUE,
           footer = modalButton("Close"),
           size = "l"
