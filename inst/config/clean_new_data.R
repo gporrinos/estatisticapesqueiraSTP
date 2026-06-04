@@ -1,0 +1,669 @@
+
+
+#' @export
+cleaning_function <- function(dat){
+
+
+  for(i in 1:length(dat)) assign(names(dat)[i], dat[[i]])
+
+
+
+
+
+
+
+
+
+
+  ################################################################################
+  ####                        CLEAN "EMBARCACOES" DATA                        ####
+  ################################################################################
+
+
+
+
+
+
+
+
+  if(exists("embarcacoes.old_RAW")){
+
+    if(!is.null(embarcacoes.old_RAW)){
+
+      if(nrow(embarcacoes.old_RAW) > 0){
+
+        colnames(embarcacoes.old_RAW)[which(colnames(embarcacoes.old_RAW) == "distrito-origem")] = "distrito"
+        colnames(embarcacoes.old_RAW)[which(colnames(embarcacoes.old_RAW) == "comunidade-origem")] = "comunidade"
+
+        colnames(embarcacoes.old_RAW) <- gsub("-", "_", colnames(embarcacoes.old_RAW))
+
+
+
+
+
+
+        ### 1. CALCULATE "UNIDADE DE PESCA"
+        embarcacoes.old_RAW <- create_new_var_after("unidade_pesca", "arte_de_pesca", embarcacoes.old_RAW, "character")
+        embarcacoes.old_RAW$unidade_pesca <- embarcacoes.old_RAW$arte_de_pesca
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$arte_de_pesca == "FIO_E_ANZOL" & embarcacoes.old_RAW$propulsao == "motor"] <- "FIO E ANZOL MOTORIZADA"
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$arte_de_pesca == "FIO E ANZOL" & embarcacoes.old_RAW$propulsao == "motor"] <- "FIO E ANZOL MOTORIZADA"
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$arte_de_pesca == "FIO_E_ANZOL" & !embarcacoes.old_RAW$propulsao == "motor"] <- "FIO E ANZOL NAO MOTORIZADA"
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$arte_de_pesca == "FIO E ANZOL" & !embarcacoes.old_RAW$propulsao == "motor"] <- "FIO E ANZOL NAO MOTORIZADA"
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$embarcacao == "CARIOCO"] <- "FIO E ANZOL CARIOCO"
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$embarcacao == "TRAINERA"] <- "FIO E ANZOL TRAINERA"
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$embarcacao == "carioco"] <- "FIO E ANZOL CARIOCO"
+        embarcacoes.old_RAW$unidade_pesca[embarcacoes.old_RAW$embarcacao == "trainera"] <- "FIO E ANZOL TRAINERA"
+
+
+        ### 2. CALCULATE TOTAL FUEL COST
+        fuelcost    = function(fueltype) {
+          if(nrow(embarcacoes.old_RAW) > 0){
+            return(
+              unlist(lapply(1:nrow(embarcacoes.old_RAW),function(i){
+                price = embarcacoes.old_RAW[i,paste0("preco_",fueltype)]
+                fuel  = embarcacoes.old_RAW[i,fueltype]
+                if(fuel == 0) 0 else fuel*price
+              }))
+            ) } else {
+              return(as.numeric(c()))
+            }
+        }
+
+        embarcacoes.old_RAW <- create_new_var_after("custo_combustivel", "preco_oleo_motor", embarcacoes.old_RAW, "numeric")
+        embarcacoes.old_RAW$custo_combustivel = fuelcost("gasolina") + fuelcost("gasoleo") +
+          fuelcost("petroleo") + fuelcost("oleo_motor")
+
+
+
+        ### 3. SEPARATE YEAR, MONTH AND DAY
+        embarcacoes.old_RAW <- create_new_var_after("ano", "data", embarcacoes.old_RAW, "integer")
+        embarcacoes.old_RAW <- create_new_var_after("mes", "ano", embarcacoes.old_RAW, "integer")
+        embarcacoes.old_RAW <- create_new_var_after("dia", "mes", embarcacoes.old_RAW, "integer")
+        embarcacoes.old_RAW$ano <- as.integer(substr(embarcacoes.old_RAW$data, 1,4))
+        embarcacoes.old_RAW$mes <- as.integer(substr(embarcacoes.old_RAW$data, 6,7))
+        embarcacoes.old_RAW$dia <- as.integer(substr(embarcacoes.old_RAW$data, 9,10))
+
+        embarcacoes.old_RAW <- create_new_var_after("ano_saida", "data_saida", embarcacoes.old_RAW, "integer")
+        embarcacoes.old_RAW <- create_new_var_after("mes_saida", "ano_saida", embarcacoes.old_RAW, "integer")
+        embarcacoes.old_RAW <- create_new_var_after("dia_saida", "mes_saida", embarcacoes.old_RAW, "integer")
+        embarcacoes.old_RAW$ano_saida <- as.integer(substr(embarcacoes.old_RAW$data_saida, 1,4))
+        embarcacoes.old_RAW$mes_saida <- as.integer(substr(embarcacoes.old_RAW$data_saida, 6,7))
+        embarcacoes.old_RAW$dia_saida <- as.integer(substr(embarcacoes.old_RAW$data_saida, 9,10))
+
+
+
+
+        ### 4. CALCULATE TIME AT THE SEA
+        embarcacoes.old_RAW <- create_new_var_after("duracao_viagem", "hora_saida", embarcacoes.old_RAW, "numeric")
+        embarcacoes.old_RAW$duracao_viagem <-
+          as.numeric(
+            as.difftime(
+              as.POSIXct(paste(paste(add0(embarcacoes.old_RAW$ano),
+                                     add0(embarcacoes.old_RAW$mes),
+                                     add0(embarcacoes.old_RAW$dia),
+                                     sep = "-"),
+                               embarcacoes.old_RAW$hora)) -
+                as.POSIXct(paste(paste(add0(embarcacoes.old_RAW$ano_saida),
+                                       add0(embarcacoes.old_RAW$mes_saida),
+                                       add0(embarcacoes.old_RAW$dia_saida),
+                                       sep = "-"),
+                                 embarcacoes.old_RAW$hora_saida)),
+              units = "hours"))/(60*60)
+        embarcacoes.old_RAW$hora       <- substr(embarcacoes.old_RAW$hora,1,5)
+        embarcacoes.old_RAW$hora_saida <- substr(embarcacoes.old_RAW$hora_saida,1,5)
+
+
+
+        embarcacoes.old_RAW <- create_new_var_after(new_var  = "duracao_viagem_unidade",
+                                                    ref_var  = "duracao_viagem",
+                                                    data      = embarcacoes.old_RAW,
+                                                    class = "numeric")
+        embarcacoes.old_RAW$duracao_viagem_unidade = "hour"
+
+        embarcacoes.old_RAW <- create_new_var_after("hora_inicio_questionario", "id", embarcacoes.old_RAW, "character")
+
+
+
+
+
+        if(is.null(embarcacoes_RAW) & !is.null(embarcacoes.old_RAW))
+          embarcacoes_RAW <- embarcacoes.old_RAW
+        if(!is.null(embarcacoes_RAW) & !is.null(embarcacoes.old_RAW))
+          embarcacoes_RAW <- dplyr::bind_rows(embarcacoes_RAW,embarcacoes.old_RAW)
+        embarcacoes.old_RAW <- NULL
+
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+
+  ################################################################################
+  ####                      CLEAN "EMBARCACOES.OLD" DATA                      ####
+  ################################################################################
+
+
+
+
+
+
+
+  if(exists("embarcacoes.old")){
+
+    if(!is.null(embarcacoes.old)){
+
+      if(nrow(embarcacoes.old) > 0){
+
+
+        colnames(embarcacoes.old)[which(colnames(embarcacoes.old) == "distrito-origem")] = "distrito"
+        colnames(embarcacoes.old)[which(colnames(embarcacoes.old) == "comunidade-origem")] = "comunidade"
+
+        colnames(embarcacoes.old) <- gsub("-", "_", colnames(embarcacoes.old))
+
+        ### 1. CALCULATE "UNIDADE DE PESCA"
+        embarcacoes.old <- create_new_var_after("unidade_pesca", "arte_de_pesca", embarcacoes.old, "character")
+        embarcacoes.old$unidade_pesca <- embarcacoes.old$arte_de_pesca
+        embarcacoes.old$unidade_pesca[embarcacoes.old$arte_de_pesca == "FIO_E_ANZOL" & embarcacoes.old$propulsao == "motor"] <- "FIO E ANZOL MOTORIZADA"
+        embarcacoes.old$unidade_pesca[embarcacoes.old$arte_de_pesca == "FIO E ANZOL" & embarcacoes.old$propulsao == "motor"] <- "FIO E ANZOL MOTORIZADA"
+        embarcacoes.old$unidade_pesca[embarcacoes.old$arte_de_pesca == "FIO_E_ANZOL" & !embarcacoes.old$propulsao == "motor"] <- "FIO E ANZOL NAO MOTORIZADA"
+        embarcacoes.old$unidade_pesca[embarcacoes.old$arte_de_pesca == "FIO E ANZOL" & !embarcacoes.old$propulsao == "motor"] <- "FIO E ANZOL NAO MOTORIZADA"
+        embarcacoes.old$unidade_pesca[embarcacoes.old$embarcacao == "CARIOCO"] <- "FIO E ANZOL CARIOCO"
+        embarcacoes.old$unidade_pesca[embarcacoes.old$embarcacao == "TRAINERA"] <- "FIO E ANZOL TRAINERA"
+        embarcacoes.old$unidade_pesca[embarcacoes.old$embarcacao == "carioco"] <- "FIO E ANZOL CARIOCO"
+        embarcacoes.old$unidade_pesca[embarcacoes.old$embarcacao == "trainera"] <- "FIO E ANZOL TRAINERA"
+
+
+        ### 2. CALCULATE TOTAL FUEL COST
+        fuelcost    = function(fueltype) {
+          if(nrow(embarcacoes.old) > 0){
+            return(
+              unlist(lapply(1:nrow(embarcacoes.old),function(i){
+                price = embarcacoes.old[i,paste0("preco_",fueltype)]
+                fuel  = embarcacoes.old[i,fueltype]
+                if(fuel == 0) 0 else fuel*price
+              }))
+            ) } else {
+              return(as.numeric(c()))
+            }
+        }
+
+        embarcacoes.old <- create_new_var_after("custo_combustivel", "preco_oleo_motor", embarcacoes.old, "numeric")
+        embarcacoes.old$custo_combustivel = fuelcost("gasolina") + fuelcost("gasoleo") +
+          fuelcost("petroleo") + fuelcost("oleo_motor")
+
+
+
+        ### 3. SEPARATE YEAR, MONTH AND DAY
+        embarcacoes.old <- create_new_var_after("ano", "data", embarcacoes.old, "integer")
+        embarcacoes.old <- create_new_var_after("mes", "ano", embarcacoes.old, "integer")
+        embarcacoes.old <- create_new_var_after("dia", "mes", embarcacoes.old, "integer")
+        embarcacoes.old$ano <- as.integer(substr(embarcacoes.old$data, 1,4))
+        embarcacoes.old$mes <- as.integer(substr(embarcacoes.old$data, 6,7))
+        embarcacoes.old$dia <- as.integer(substr(embarcacoes.old$data, 9,10))
+
+        embarcacoes.old <- create_new_var_after("ano_saida", "data_saida", embarcacoes.old, "integer")
+        embarcacoes.old <- create_new_var_after("mes_saida", "ano_saida", embarcacoes.old, "integer")
+        embarcacoes.old <- create_new_var_after("dia_saida", "mes_saida", embarcacoes.old, "integer")
+        embarcacoes.old$ano_saida <- as.integer(substr(embarcacoes.old$data_saida, 1,4))
+        embarcacoes.old$mes_saida <- as.integer(substr(embarcacoes.old$data_saida, 6,7))
+        embarcacoes.old$dia_saida <- as.integer(substr(embarcacoes.old$data_saida, 9,10))
+
+
+
+
+        ### 4. CALCULATE TIME AT THE SEA
+        embarcacoes.old <- create_new_var_after("duracao_viagem", "hora_saida", embarcacoes.old, "numeric")
+        embarcacoes.old$duracao_viagem <-
+          as.numeric(
+            as.difftime(
+              as.POSIXct(paste(paste(add0(embarcacoes.old$ano),
+                                     add0(embarcacoes.old$mes),
+                                     add0(embarcacoes.old$dia),
+                                     sep = "-"),
+                               embarcacoes.old$hora)) -
+                as.POSIXct(paste(paste(add0(embarcacoes.old$ano_saida),
+                                       add0(embarcacoes.old$mes_saida),
+                                       add0(embarcacoes.old$dia_saida),
+                                       sep = "-"),
+                                 embarcacoes.old$hora_saida)),
+              units = "hours"))/(60*60)
+        embarcacoes.old$hora       <- substr(embarcacoes.old$hora,1,5)
+        embarcacoes.old$hora_saida <- substr(embarcacoes.old$hora_saida,1,5)
+
+
+
+        embarcacoes.old <- create_new_var_after(new_var  = "duracao_viagem_unidade",
+                                                ref_var  = "duracao_viagem",
+                                                data      = embarcacoes.old,
+                                                class = "numeric")
+        embarcacoes.old$duracao_viagem_unidade = "hour"
+
+        embarcacoes.old <- create_new_var_after("hora_inicio_questionario", "id", embarcacoes.old, "character")
+
+
+
+
+        if(is.null(embarcacoes) & !is.null(embarcacoes.old))  embarcacoes <- embarcacoes.old
+        if(!is.null(embarcacoes) & !is.null(embarcacoes.old)) embarcacoes <- dplyr::bind_rows(embarcacoes,embarcacoes.old)
+        embarcacoes.old <- NULL
+
+      }
+    }
+  }
+
+
+
+
+
+
+
+  ################################################################################
+  ####                        CLEAN "EMBARCACOES" DATA                        ####
+  ################################################################################
+
+
+
+
+
+
+  if(exists("embarcacoes")){
+
+    if(!is.null(embarcacoes)){
+
+      if(nrow(embarcacoes) > 0){
+
+        ### VALIDATION OF TRIP DURATION
+        embarcacoes$valid_duracao_viagem     <- 1
+        embarcacoes$valid_combustivel        <- 1
+        embarcacoes$observacoes              <- ""
+
+        # Identify short trips
+        positions <- which(embarcacoes$duracao_viagem < 1)
+        embarcacoes$valid_duracao_viagem[positions] <- 1
+        embarcacoes$observacoes[positions] <-  "VERIFICAR_viagem_muito_curta"
+
+        # Identify negative trip duration
+        positions <- which(embarcacoes$duracao_viagem < 0.000000001)
+        embarcacoes$valid_duracao_viagem[positions] <- 0
+        embarcacoes$observacoes[positions] <-  "chegada_antes_de_saida"
+
+        # Identify long trips
+        positions <- which(embarcacoes$tipo_embarcacao == "artesanal" &
+                             embarcacoes$duracao_viagem > 24)
+        embarcacoes$valid_duracao_viagem[positions] <- 1
+        embarcacoes$observacoes[positions] <-  "viagem_muito_longa"
+
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+  ################################################################################
+  ####                      CLEAN "CAPTURAS.OLD_RAW" DATA                     ####
+  ################################################################################
+
+
+
+  if(exists("capturas.old_RAW")){
+
+    if(!is.null(capturas.old_RAW)){
+
+      if(nrow(capturas.old_RAW) > 0){
+
+        colnames(capturas.old_RAW)[which(colnames(capturas.old_RAW) == "nomelocal")] <- "nome_local"
+        colnames(capturas.old_RAW) <- gsub("-", "_", colnames(capturas.old_RAW))
+
+        # Create new variables
+        capturas.old_RAW   <- create_new_var_after("preco_kg", "unidade_preco", capturas.old_RAW, "numeric")
+        capturas.old_RAW$preco_kg = as.numeric(NA)
+
+        positions <- which(!capturas.old_RAW$unidade_preco == "kg" &
+                             !is.na(capturas.old_RAW$preco)  &
+                             grepl("venda",paste0(capturas.old_RAW$uso," ")))
+
+        capturas.old_RAW$preco_kg[which(capturas.old_RAW$unidade_preco == "kg")] <- capturas.old_RAW$preco[which(capturas.old_RAW$unidade_preco == "kg")]
+        if(length(positions) > 0){
+          capturas.old_RAW$preco_kg[positions] <- ((capturas.old_RAW$numero[positions]/as.numeric(capturas.old_RAW$unidade_preco[positions]))*as.numeric(capturas.old_RAW$preco[positions]))/
+            capturas.old_RAW$peso[positions]
+        }
+
+
+        capturas.old_RAW   <- create_new_var_after("unidade_preco_kg", "preco_kg", capturas.old_RAW, "numeric")
+        capturas.old_RAW$unidade_preco_kg = "STN/kg"
+
+
+
+        if(is.null(capturas_RAW) & !is.null(capturas.old_RAW))
+          capturas_RAW <- capturas.old_RAW
+        if(!is.null(capturas_RAW) & !is.null(capturas.old_RAW))
+          capturas_RAW <- dplyr::bind_rows(capturas_RAW,capturas.old_RAW)
+        capturas.old_RAW <- NULL
+
+
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+  ################################################################################
+  ####                       CLEAN "CAPTURAS.OLD" DATA                        ####
+  ################################################################################
+
+
+
+  if(exists("capturas.old")){
+
+    if(!is.null(capturas.old)){
+
+      if(nrow(capturas.old) > 0){
+
+        colnames(capturas.old)[which(colnames(capturas.old) == "nomelocal")] <- "nome_local"
+
+        colnames(capturas.old) <- gsub("-", "_", colnames(capturas.old))
+
+        # Create new variables
+        capturas.old   <- create_new_var_after("preco_kg", "unidade_preco", capturas.old, "numeric")
+        capturas.old$preco_kg = as.numeric(NA)
+
+        positions <- which(!capturas.old$unidade_preco == "kg" &
+                             !is.na(capturas.old$preco)  &
+                             grepl("venda",paste0(capturas.old$uso," ")))
+
+        capturas.old$preco_kg[which(capturas.old$unidade_preco == "kg")] <- capturas.old$preco[which(capturas.old$unidade_preco == "kg")]
+        if(length(positions) > 0){
+          capturas.old$preco_kg[positions] <- ((capturas.old$numero[positions]/as.numeric(capturas.old$unidade_preco[positions]))*as.numeric(capturas.old$preco[positions]))/
+            capturas.old$peso[positions]
+        }
+
+
+        capturas.old   <- create_new_var_after("unidade_preco_kg", "preco_kg", capturas.old, "numeric")
+        capturas.old$unidade_preco_kg = "STN/kg"
+
+
+
+        if(is.null(capturas) & !is.null(capturas.old))  capturas <- capturas.old
+        if(!is.null(capturas) & !is.null(capturas.old)) capturas <- dplyr::bind_rows(capturas,capturas.old)
+        capturas.old <- NULL
+
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+  ################################################################################
+  ####                         CLEAN "CAPTURAS" DATA                          ####
+  ################################################################################
+
+
+  if(exists("capturas")){
+
+    if(!is.null(capturas)){
+
+      if(nrow(capturas) > 0){
+
+
+
+        ### Calculate weight of "voador"
+        positions <- which(capturas$especie == "Exocoetidae" &
+                             is.na(capturas$peso))
+        if(length(positions) > 0){
+          capturas$peso[positions] <-  capturas$numero[positions] * 0.3
+        }
+
+
+
+        ### Calculate weight of "maxipombo"
+        positions <- which(capturas$especie == "Hemiramphus balao" &
+                             is.na(capturas$peso))
+        if(length(positions) > 0){
+          capturas$peso[positions] <-  capturas$numero[positions] * 0.11
+        }
+
+        ### Remove empty lines
+        capturas <- capturas[which(!is.na(capturas$especie)),]
+
+
+        ### Validation
+        capturas$valid_peso   <- 1
+        capturas$valid_preco  <- 1
+        capturas$observacoes  <- ""
+      }
+    }
+  }
+
+
+
+
+
+
+
+  ################################################################################
+  ####                      CLEAN "ESFORCO.OLD_RAW" DATA                      ####
+  ################################################################################
+
+
+
+
+  if(exists("esforco.old_RAW")){
+
+    if(!is.null(esforco.old_RAW)){
+
+      if(nrow(esforco.old_RAW) > 0){
+        colnames(esforco.old_RAW) <- gsub("-", "_", colnames(esforco.old_RAW))
+
+        pos   <- !is.na(esforco.old_RAW$apagar_VOADOR_PANHA)
+        esforco.old_RAW$VOADOR_PANHA[pos] <- esforco.old_RAW$apagar_VOADOR_PANHA[pos]
+        pos = colnames(esforco.old_RAW) == "CARIOCO"
+        colnames(esforco.old_RAW)[pos] <- "FIO_E_ANZOL_CARIOCO"
+        pos = colnames(esforco.old_RAW) == "TRAINERA"
+        colnames(esforco.old_RAW)[pos] <- "FIO_E_ANZOL_TRAINERA"
+
+
+        ### STEP 5: STANDARDISE DATA
+        gears = c("REDE_EMALHAR_SUPERFICIE",
+                  "REDE_EMALHAR_DEMERSAL",
+                  "REDE_BRISA",
+                  "VOADOR_PANHA",
+                  "SUBMARINO",
+                  "PESCA_DE_SANTOLA",
+                  "FIO_E_ANZOL_MOTORIZADA",
+                  "FIO_E_ANZOL_NAO_MOTORIZADA",
+                  "FIO_E_ANZOL_CARIOCO",
+                  "FIO_E_ANZOL_TRAINERA")
+        for(i in 1:length(gears)) {
+          gear = gears[i]
+          temp = data.frame(esforco.old_RAW[,which(colnames(esforco.old_RAW) %in%
+                                                     c("uuid", "id", "ilha",
+                                                       "distrito", "comunidade",
+                                                       "inquiridor", "data",
+                                                       "pesca", "nao_pesca_razao"))],
+                            unidade_pesca = gear,
+                            embarcacoes_ativas = esforco.old_RAW[,which(colnames(esforco.old_RAW) == gear)],
+                            esforco.old_RAW[,which(colnames(esforco.old_RAW) %in%
+                                                     c("deviceid", "data_descarga"))])
+          if(i == 1) output = temp else output = rbind(output,temp)
+        }
+        esforco.old_RAW <- output
+        esforco.old_RAW$unidade_pesca <- gsub("_", " ", esforco.old_RAW$unidade_pesca)
+        esforco.old_RAW <- esforco.old_RAW[order(esforco.old_RAW$uuid), ]
+
+
+
+        if(is.null(esforco_RAW) & !is.null(esforco.old_RAW))
+          esforco_RAW <- esforco.old_RAW
+        if(!is.null(esforco_RAW) & !is.null(esforco.old_RAW))
+          esforco_RAW <- dplyr::bind_rows(esforco_RAW,esforco.old_RAW)
+        esforco.old_RAW <- NULL
+      }
+    }
+  }
+
+
+
+
+
+
+  ################################################################################
+  ####                        CLEAN "ESFORCO.OLD" DATA                        ####
+  ################################################################################
+
+
+
+
+  if(exists("esforco.old")){
+
+    if(!is.null(esforco.old)){
+
+      if(nrow(esforco.old) > 0){
+        colnames(esforco.old) <- gsub("-", "_", colnames(esforco.old))
+
+        pos   <- !is.na(esforco.old$apagar_VOADOR_PANHA)
+        esforco.old$VOADOR_PANHA[pos] <- esforco.old$apagar_VOADOR_PANHA[pos]
+        pos = colnames(esforco.old) == "CARIOCO"
+        colnames(esforco.old)[pos] <- "FIO_E_ANZOL_CARIOCO"
+        pos = colnames(esforco.old) == "TRAINERA"
+        colnames(esforco.old)[pos] <- "FIO_E_ANZOL_TRAINERA"
+
+
+        ### STEP 5: STANDARDISE DATA
+        gears = c("REDE_EMALHAR_SUPERFICIE",
+                  "REDE_EMALHAR_DEMERSAL",
+                  "REDE_BRISA",
+                  "VOADOR_PANHA",
+                  "SUBMARINO",
+                  "PESCA_DE_SANTOLA",
+                  "FIO_E_ANZOL_MOTORIZADA",
+                  "FIO_E_ANZOL_NAO_MOTORIZADA",
+                  "FIO_E_ANZOL_CARIOCO",
+                  "FIO_E_ANZOL_TRAINERA")
+        for(i in 1:length(gears)) {
+          gear = gears[i]
+          temp = data.frame(esforco.old[,which(colnames(esforco.old) %in%
+                                                 c("uuid", "id", "ilha",
+                                                   "distrito", "comunidade",
+                                                   "inquiridor", "data",
+                                                   "pesca", "nao_pesca_razao"))],
+                            unidade_pesca = gear,
+                            embarcacoes_ativas = esforco.old[,which(colnames(esforco.old) == gear)],
+                            esforco.old[,which(colnames(esforco.old) %in%
+                                                 c("deviceid", "data_descarga"))])
+          if(i == 1) output = temp else output = rbind(output,temp)
+        }
+        esforco.old <- output
+        esforco.old$unidade_pesca <- gsub("_", " ", esforco.old$unidade_pesca)
+        esforco.old <- esforco.old[order(esforco.old$uuid), ]
+
+
+        esforco.old <- create_new_var_after("ano", "data", esforco.old, "integer")
+        esforco.old <- create_new_var_after("mes", "ano", esforco.old, "integer")
+        esforco.old <- create_new_var_after("dia", "mes", esforco.old, "integer")
+        esforco.old$ano <- as.integer(substr(esforco.old$data, 1,4))
+        esforco.old$mes <- as.integer(substr(esforco.old$data, 6,7))
+        esforco.old$dia <- as.integer(substr(esforco.old$data, 9,10))
+
+
+        if(is.null(esforco) & !is.null(esforco.old))  esforco <- esforco.old
+        if(!is.null(esforco) & !is.null(esforco.old)) esforco <- dplyr::bind_rows(esforco,esforco.old)
+        esforco.old <- NULL
+      }
+    }
+  }
+
+
+
+
+
+  ################################################################################
+  ####                          CLEAN "ESFORCO" DATA                          ####
+  ################################################################################
+
+
+
+
+  if(exists("esforco")){
+
+    if(!is.null(esforco)){
+
+      if(nrow(esforco) > 0){
+        esforco$valid <- 1
+        esforco$observacoes = ""
+
+
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+
+  ################################################################################
+  ####                     CLEAN "EMBARCACOESATIVAS" DATA                     ####
+  ################################################################################
+
+
+
+
+  if(exists("embarcacoesativas")){
+
+    if(!is.null(embarcacoesativas)){
+
+      if(nrow(embarcacoesativas) > 0){
+        embarcacoesativas$valid <- 1
+        embarcacoesativas$observacoes = ""
+      }
+    }
+  }
+
+
+
+
+
+
+  return(
+    Filter(Negate(is.null), stats::setNames(
+      lapply(names(dat), function(datname) {
+        if (exists(datname)) get(datname)
+      }),
+      names(dat)
+    )
+    )
+  )
+}
+
+
+
+
+

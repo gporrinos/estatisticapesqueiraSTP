@@ -3,7 +3,7 @@ Title: Management of STP's statistical data
 Version: 0.0.10
 Authors@R: 
     person("Guillermo", "Porriños", email = "grmo.prieto@outlook.com", role = c("aut", "cre"))
-Description: So many incredible things
+Description: An interface to downloadand and manage STP's fisheries statistics via the KoboToolbox API and produce fisheries statistics via artfishr package.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

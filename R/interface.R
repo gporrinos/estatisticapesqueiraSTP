@@ -7,8 +7,8 @@ create_ui <- function(header)
     header = bs4Dash::dashboardHeader(header),
     sidebar = bs4Dash::dashboardSidebar(disable = TRUE),
     body = bs4Dash::dashboardBody(
-      tags$head(
-        tags$style(HTML("
+      shiny::tags$head(
+        shiny::tags$style(shiny::HTML("
           .modal-dialog {
             width: 100vw;
             max-width: 100vw;
@@ -530,7 +530,7 @@ create_server <- function(wd = getwd(),
     shiny::observeEvent(input$open_artfish_ui_modal, {
 
       #read back Artfish report
-      estimates = reactive({ readxl::read_excel(file.path("artfish", paste0("catch_and_effort_report.", config[["fileformat"]]))) })
+      estimates = shiny::reactive({ readxl::read_excel(file.path("artfish", paste0("catch_and_effort_report.", config[["fileformat"]]))) })
 
       artfishr::artfish_shiny_overview_server("artfish_overview", lang = rv$language, estimate = estimates, effort_source = "boat_counting", minor_strata = "minor_stratum")
 
@@ -539,7 +539,7 @@ create_server <- function(wd = getwd(),
           title = rv$messages$visualize_artfish_results,
           artfishr::artfish_shiny_overview_ui("artfish_overview"),
           easyClose = TRUE,
-          footer = modalButton("Close"),
+          footer = shiny::modalButton("Close"),
           size = "l"
         )
       )

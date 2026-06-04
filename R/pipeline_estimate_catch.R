@@ -1,30 +1,4 @@
 
-opa <- function(){
-  library(estatisticapesqueiraSTP)
-  conf <- get_config_from_local()
-  artfish <- list(
-    dat = readxl::read_excel(path = file.path("inst", "config", "artfish.xlsx"), sheet = "dat"),
-    vars = readxl::read_excel(path = file.path("inst", "config", "artfish.xlsx"),
-                              sheet = "vars"))
-
-  config <- conf$config
-  load_data_from = "local"
-  last_session = conf$last_session
-  variables = conf$variables
-  repository_name = conf$repository_name
-  zenodo = conf$zenodo
-  load_data_from = "server"
-
-  export_artfish(config = config,
-                 last_session = last_session,
-                 variables = variables,
-                 repository_name = repository_name,
-                 zenodo = zenodo,
-                 token = token,
-                 load_data_from = "server",
-                 artfish = artfish)
-
-}
 
 #' @export
 export_artfish <- function(
