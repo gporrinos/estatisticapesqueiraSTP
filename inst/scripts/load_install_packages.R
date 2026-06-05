@@ -16,6 +16,7 @@ for(package in c("shiny",
                  "jsonlite",
                  "DBI",
                  "RSQLite",
+                 "plotly",
                  "shinyFiles",
                  "bs4Dash"))
   load_package(package)
