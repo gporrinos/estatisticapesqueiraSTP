@@ -507,20 +507,22 @@ download_new_submissions <- function(kobo,
 
 
 
-    for(i in 1:nrow(att_vars)){
-      datname = att_vars$dat[i]
-      if(!is.null(    new_data[[datname]]   )){
-        varname = att_vars$attachment[i]
-        if(varname %in% colnames(       new_data[[datname]]      )){
-          new_data[[datname]]  <-
-            create_new_var_after(new_var = paste0(varname, "_link"),
-                                 ref_var = varname,
-                                 data    = new_data[[datname]],
-                                 class   = "character")
+    if(nrow(att_vars) > 0){
+      for(i in seq_along(nrow(att_vars))){
+        datname = att_vars$dat[i]
+        if(!is.null(    new_data[[datname]]   )){
+          varname = att_vars$attachment[i]
+          if(varname %in% colnames(       new_data[[datname]]      )){
+            new_data[[datname]]  <-
+              create_new_var_after(new_var = paste0(varname, "_link"),
+                                   ref_var = varname,
+                                   data    = new_data[[datname]],
+                                   class   = "character")
+          }
         }
       }
+      suppressWarnings( rm(varname, i, datname) )
     }
-    suppressWarnings( rm(varname, i, datname) )
 
 
 
