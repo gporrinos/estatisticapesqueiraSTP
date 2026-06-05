@@ -515,7 +515,12 @@ cleaning_function <- function(dat){
         esforco.old_RAW$unidade_pesca <- gsub("_", " ", esforco.old_RAW$unidade_pesca)
         esforco.old_RAW <- esforco.old_RAW[order(esforco.old_RAW$uuid), ]
 
-
+        esforco.old_RAW <- create_new_var_after("ano", "data", esforco.old_RAW, "integer")
+        esforco.old_RAW <- create_new_var_after("mes", "ano", esforco.old_RAW, "integer")
+        esforco.old_RAW <- create_new_var_after("dia", "mes", esforco.old_RAW, "integer")
+        esforco.old_RAW$ano <- as.integer(substr(esforco.old_RAW$data, 1,4))
+        esforco.old_RAW$mes <- as.integer(substr(esforco.old_RAW$data, 6,7))
+        esforco.old_RAW$dia <- as.integer(substr(esforco.old_RAW$data, 9,10))
 
         if(is.null(esforco_RAW) & !is.null(esforco.old_RAW))
           esforco_RAW <- esforco.old_RAW
