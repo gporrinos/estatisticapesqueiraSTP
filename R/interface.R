@@ -427,11 +427,11 @@ create_server <- function(wd = getwd(),
             invokeRestart("muffleMessage")
           },
           warning = function(w) {
-            log("WARNING:", conditionMessage(w))
+            log("WARNING:", conditionMessage(w), "\n")
             invokeRestart("muffleWarning")
           },
           error = function(e) {
-            log("ERROR:", conditionMessage(e))
+            log("ERROR:", conditionMessage(e), "\n")
           })
 
           sink(type = "output")
@@ -530,7 +530,21 @@ create_server <- function(wd = getwd(),
     shiny::observeEvent(input$open_artfish_ui_modal, {
 
       #read back Artfish report
-      estimates = shiny::reactive({ readxl::read_excel(file.path("artfish", paste0("catch_and_effort_report.", config[["fileformat"]]))) })
+      catch_and_effort_report <- estatisticapesqueiraSTP::readDAT(filepath = file.path("artfish", paste0("catch_and_effort_report.", config[["fileformat"]])),
+                                       fileformat = config[["fileformat"]],
+                                       csv_separator = config[["csv_separator"]],
+                                       sheetname = "catch_and_effort_report")
+      # Force class of columns
+      class_artfishinput <- read.csv(system.file("config", "class_artfishinput.csv",
+                                                 package = "estatisticapesqueiraSTP"))
+      for(i in seq_len(nrow(class_artfishinput))){
+        as.class = get(paste0("as.", class_artfishinput$class[i]))
+        var = class_artfishinput$variable[i]
+        catch_and_effort_report[[var]] <- as.class(catch_and_effort_report[[var]])
+      }
+      catch_and_effort_report$date = lubridate::make_date(catch_and_effort_report$year, catch_and_effort_report$month, 1)
+
+      estimates = shiny::reactive({ catch_and_effort_report })
 
       artfishr::artfish_shiny_overview_server("artfish_overview", lang = rv$language, estimate = estimates, effort_source = "boat_counting", minor_strata = "minor_stratum")
 
@@ -543,10 +557,7 @@ create_server <- function(wd = getwd(),
           size = "l"
         )
       )
-
     })
-
-
 
     # ----------------  STEP 3: RUNNING KOBOMANAGER  --------------- #
 

@@ -466,6 +466,13 @@ export_artfish <- function(
     landings = landings,
     minor_strata = "minor_stratum"
   )
+
+  catch_and_effort_report = as.data.frame(catch_and_effort_report)
+  #Patch to deal with Inf values (due to effort 0)
+  for(colname in colnames(catch_and_effort_report)){
+    if(any(is.infinite(catch_and_effort_report[,colname]))) catch_and_effort_report[is.infinite(catch_and_effort_report[,colname]),][,colname] <- 0
+  }
+
   catch_and_effort_report$species_label = catch_and_effort_report$species
   catch_and_effort_report$fishing_unit_label = catch_and_effort_report$fishing_unit
   catch_and_effort_report$date = lubridate::make_date(catch_and_effort_report$year, catch_and_effort_report$month, 1)
