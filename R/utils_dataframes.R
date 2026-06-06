@@ -98,3 +98,17 @@ enforce_class <- function(data, class_list){
   return(data)
 }
 
+
+
+
+#' Bind a list of data frames, returning NULL if the result is empty
+#'
+#' @param ... Data frames to bind (NULL elements are ignored).
+#' @return A data frame, or NULL if all elements are NULL or have zero rows.
+#' @export
+bind_dfs <- function(...){
+  dfs = Filter(f = Negate(f = is.null),
+               x = list(...))
+  output = as.data.frame(dplyr::bind_rows(dfs))
+  if(nrow(output) == 0) output = NULL
+  return(output)}

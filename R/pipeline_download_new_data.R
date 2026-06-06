@@ -229,15 +229,17 @@ download_new_submissions <- function(kobo,
 
 
 
+dat_info = databases[[1]]
   ### ------------------ STEP 3: PROCESS QUESTIONNAIRE DATA ------------------ ###
 
   message("\n",msg$Processing_new_submissions,"\n")
   new_data <- lapply(databases, function(dat_info){
 
 
-    ### 1. FETCH PARENT DATA
+    ### 1. FETCH PARENT DATA & REMOVE DUPLICATES
     parentname      = dat_info[["parent"]]
     parent          = new_submissions[[parentname]]
+    parent          = parent[!duplicated(unlist(lapply(parent, function(x) x$"_uuid")))]
 
     if(length(parent) == 0) {
       message(paste0("      ", msg$no_new_submissions," ", msg$of, " '", dat_info[["dat"]], "'"))
@@ -310,6 +312,7 @@ download_new_submissions <- function(kobo,
               output       = instance[which(names(instance) == nestedname)][[1]]
               for(i in 1:length(output)) output[[i]]$"_uuid" = instance$"_uuid"
               for(i in 1:length(output)) output[[i]]$"_id" = instance$"_id"
+              for(i in 1:length(output)) output[[i]]$uuuid = paste0(instance$"_uuid", "_", i)
               return(output)}
           })
           nested <- unlist(nested, recursive = FALSE) # Flatten list
@@ -335,7 +338,8 @@ download_new_submissions <- function(kobo,
 
           # Create list of all variable names (including uuid and id)
           varnames      = names(variables[[datname]])
-          varnames      = c("_uuid","_id", varnames)
+          id_vars = if("uuuid" %in% colnames(dat)) c("uuuid", "_uuid","_id") else c("_uuid","_id")
+          varnames      = c(id_vars, varnames)
 
 
           # Add questionnaire variables not in the data frame
@@ -688,9 +692,6 @@ download_new_submissions <- function(kobo,
 
 
 
-
-
-
   }
 
 
@@ -717,9 +718,6 @@ download_new_submissions <- function(kobo,
 
 
   if(!is.null(cleaning_function)) new_data = cleaning_function(new_data)
-
-
-
 
 
 
@@ -792,6 +790,11 @@ download_new_submissions <- function(kobo,
                               append_from = new_data,
                               variables   = variables,
                               enforce_class_of = "origin")
+
+
+
+
+
 
     ### 4. WRITE COLLATED DATABASES IN "data.sqlite"
     for (datname in names(all_data)) {

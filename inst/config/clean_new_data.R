@@ -13,8 +13,6 @@ cleaning_function <- function(dat){
 
 
 
-
-
   ################################################################################
   ####                        CLEAN "EMBARCACOES" DATA                        ####
   ################################################################################
@@ -125,11 +123,7 @@ cleaning_function <- function(dat){
 
 
 
-
-        if(is.null(embarcacoes_RAW) & !is.null(embarcacoes.old_RAW))
-          embarcacoes_RAW <- embarcacoes.old_RAW
-        if(!is.null(embarcacoes_RAW) & !is.null(embarcacoes.old_RAW))
-          embarcacoes_RAW <- dplyr::bind_rows(embarcacoes_RAW,embarcacoes.old_RAW)
+        embarcacoes_RAW <- bind_dfs(get0("embarcacoes_RAW"),embarcacoes.old_RAW)
         embarcacoes.old_RAW <- NULL
 
       }
@@ -249,15 +243,12 @@ cleaning_function <- function(dat){
 
 
 
-        if(is.null(embarcacoes) & !is.null(embarcacoes.old))  embarcacoes <- embarcacoes.old
-        if(!is.null(embarcacoes) & !is.null(embarcacoes.old)) embarcacoes <- dplyr::bind_rows(embarcacoes,embarcacoes.old)
+        embarcacoes <- bind_dfs(get0("embarcacoes"),embarcacoes.old)
         embarcacoes.old <- NULL
 
       }
     }
   }
-
-
 
 
 
@@ -308,10 +299,6 @@ cleaning_function <- function(dat){
 
 
 
-
-
-
-
   ################################################################################
   ####                      CLEAN "CAPTURAS.OLD_RAW" DATA                     ####
   ################################################################################
@@ -347,10 +334,7 @@ cleaning_function <- function(dat){
 
 
 
-        if(is.null(capturas_RAW) & !is.null(capturas.old_RAW))
-          capturas_RAW <- capturas.old_RAW
-        if(!is.null(capturas_RAW) & !is.null(capturas.old_RAW))
-          capturas_RAW <- dplyr::bind_rows(capturas_RAW,capturas.old_RAW)
+        capturas_RAW <- bind_dfs(get0("capturas_RAW"),capturas.old_RAW)
         capturas.old_RAW <- NULL
 
 
@@ -401,8 +385,7 @@ cleaning_function <- function(dat){
 
 
 
-        if(is.null(capturas) & !is.null(capturas.old))  capturas <- capturas.old
-        if(!is.null(capturas) & !is.null(capturas.old)) capturas <- dplyr::bind_rows(capturas,capturas.old)
+        capturas <- bind_dfs(get0("capturas"),capturas.old)
         capturas.old <- NULL
 
       }
@@ -522,10 +505,7 @@ cleaning_function <- function(dat){
         esforco.old_RAW$mes <- as.integer(substr(esforco.old_RAW$data, 6,7))
         esforco.old_RAW$dia <- as.integer(substr(esforco.old_RAW$data, 9,10))
 
-        if(is.null(esforco_RAW) & !is.null(esforco.old_RAW))
-          esforco_RAW <- esforco.old_RAW
-        if(!is.null(esforco_RAW) & !is.null(esforco.old_RAW))
-          esforco_RAW <- dplyr::bind_rows(esforco_RAW,esforco.old_RAW)
+        esforco_RAW <- bind_dfs(get0("esforco_RAW"),esforco.old_RAW)
         esforco.old_RAW <- NULL
       }
     }
@@ -595,8 +575,7 @@ cleaning_function <- function(dat){
         esforco.old$dia <- as.integer(substr(esforco.old$data, 9,10))
 
 
-        if(is.null(esforco) & !is.null(esforco.old))  esforco <- esforco.old
-        if(!is.null(esforco) & !is.null(esforco.old)) esforco <- dplyr::bind_rows(esforco,esforco.old)
+        esforco <- bind_dfs(get0("esforco"),esforco.old)
         esforco.old <- NULL
       }
     }

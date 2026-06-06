@@ -1,6 +1,6 @@
 Package: estatisticapesqueiraSTP
-Title: Management of STP's statistical data
-Version: 0.0.9
+Title: Management and analysis of STP's statistical data
+Version: 0.1.0
 Authors@R: 
     person("Guillermo", "Porriños", email = "grmo.prieto@outlook.com", role = c("aut", "cre"))
 Description: An interface to download and manage STP's fisheries statistics via the KoboToolbox API and produce fisheries statistics via artfishr package.

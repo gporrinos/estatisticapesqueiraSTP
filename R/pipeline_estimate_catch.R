@@ -468,13 +468,25 @@ export_artfish <- function(
   )
 
   catch_and_effort_report = as.data.frame(catch_and_effort_report)
+
   #Patch to deal with Inf values (due to effort 0)
   for(colname in colnames(catch_and_effort_report)){
     if(any(is.infinite(catch_and_effort_report[,colname]))) catch_and_effort_report[is.infinite(catch_and_effort_report[,colname]),][,colname] <- 0
   }
 
-  catch_and_effort_report$species_label = catch_and_effort_report$species
+
+  # Species labels
+  sp_labs <- utils::read.csv(system.file("config", "species_labels.csv", package = "estatisticapesqueiraSTP"))
+  catch_and_effort_report$species_label <- sp_labs$species_label[
+    match(catch_and_effort_report$species, sp_labs$species)
+  ]
+  no_match <- is.na(catch_and_effort_report$species_label)
+  catch_and_effort_report$species_label[no_match] <- catch_and_effort_report$species[no_match]
+
+  # Fishing unit label (no change needed)
   catch_and_effort_report$fishing_unit_label = catch_and_effort_report$fishing_unit
+
+  # Get date
   catch_and_effort_report$date = lubridate::make_date(catch_and_effort_report$year, catch_and_effort_report$month, 1)
 
   writeDAT(data = catch_and_effort_report,
