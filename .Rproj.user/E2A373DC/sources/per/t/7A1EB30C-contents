@@ -1,0 +1,154 @@
+
+library(estatisticapesqueiraSTP)
+
+conf = estatisticapesqueiraSTP::get_config_from_local()
+config = conf$config
+repository_name = conf$repository_name
+repository_location = conf$repository_location
+forms = conf$forms
+databases = conf$databases
+variables = conf$variables
+cleaning_function = conf$cleaning_function
+zenodo = conf$zenodo
+token = "tZvahbErRsKVzOg6cwqigmQ9Rclh2fj4dhoz8FxOYXngP0KxJPAoXG3v32YP"
+language = "en"
+kobo = list(url = "eu.kobotoolbox.org",
+            username = "dadospesca_stp",
+            password = "Corvina14")
+
+estatisticapesqueiraSTP::start_interface()
+
+
+KobomanageR_msg <- function(language){
+  msg <-
+    list(
+      accessing_kobotoolbox_server =
+        list(
+          en = "Accessing KoboToolbox server",
+          pt = "Accessando o servidor do Kobotoolbox",
+          es = "Accediendo al servidor de Kobotoolbox"
+        ),
+      downloading_new_submissions =
+        list(
+          en = "Downloading new submissions",
+          pt = "Descarregando novas entradas de dados questionários",
+          es = "Descargando nuevos datos de los formularios"
+        ),
+      Processing =
+        list(
+          en = "Processing",
+          pt = "Processando",
+          es = "Procesando"
+        ),
+      Processing_new_submissions =
+        list(
+          en = "Processing new submissions",
+          pt = "Processando novas entradas de dados",
+          es = "Procesando nuevos datos"
+        ),
+      no_new_submissions =
+        list(
+          en = "There are no new submissions",
+          pt = "Não existem novas entradas de dados",
+          es = "No existen nuevas entradas de datos"
+        ),
+      Processing_new_attachments =
+        list(
+          en = "Processing new attachments",
+          pt = "Processando novos anexos",
+          es = "Procesando nuevos adjuntos"
+        ),
+      No_new_attachments =
+        list(
+          en = "There are no new attachments",
+          pt = "Não existem novos anexos",
+          es = "No hay nuevos adjuntos"
+        ),
+      Downloading =
+        list(
+          en = "Downloading",
+          pt = "Descarregando",
+          es = "Descargando"
+        ),
+      Processing =
+        list(
+          en = "Processing",
+          pt = "Processando",
+          es = "Procesando"
+        ),
+      new_attachments_process_may_take_a_while =  # Part of sentence "Downloading n new attachments"
+        list(
+          en = "new attachments. The process may take a while.",
+          pt = "anexos novos. O processo pode demorar.",
+          es = "nuevos adjuntos. El proceso puede tardar."
+        ),
+      downloading_attachment =            # Part of sentence "processing attachment i of n"
+        list(
+          en = "Downloading attachment",
+          pt = "Descarregando anexo",
+          es = "Descargando adjunto"
+        ),
+
+      of =            # Part of sentence "processing attachment i of n"
+        list(
+          en = "of",
+          pt = "de",
+          es = "de"
+        ),
+      publishing_attachment_repo =
+        list(
+          en = "Publishing attachment repository",
+          pt = "Publicando repositório de anexos",
+          es = "Publicando repositorio de adjuntos"
+        ),
+      publishing_data_repo =
+        list(
+          en = "Publishing data repository",
+          pt = "Publicando repositório de dados",
+          es = "Publicando repositorio de datos"
+        ),
+
+      downloading_server_data =
+        list(
+          en = "Downloading server data",
+          pt = "Descarregando dados do servidor",
+          es = "Descargando datos del servidor"
+        ),
+
+      reading_local_files =
+        list(
+          en = "Reading local files",
+          pt =  "Lendo arquivos locais",
+          es =  "Leyendo archivos locales"
+        ),
+
+      File =
+        list(
+          en = "File",
+          pt =  "Arquivo",
+          es =  "Archivo"
+        ),
+
+      saved_in =
+        list(
+          en = "saved in",
+          pt =  "salvo em",
+          es =  "guardado en"
+        ),
+      there_are_no_new_submissions =
+        list(
+          en = "There are no new submissions",
+          pt = "Não existem dados novos",
+          es = "No existen datos nuevos"
+        ),
+      Deleting =
+        list(
+          en = "Deleting",
+          pt = "Apagando",
+          es = "Eliminando"
+        )
+
+    )
+  return(lapply(msg, function(x) x[[which(names(x) == language)]]))
+}
+
