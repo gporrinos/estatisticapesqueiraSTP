@@ -521,7 +521,7 @@ create_server <- function(wd = getwd(),
                     repository_name = repository_name,
                     zenodo = zenodo,
                     token = rv$token,
-                    load_data_from = "server",
+                    load_data_from = "local",
                     artfish = artfish)
       )
 
