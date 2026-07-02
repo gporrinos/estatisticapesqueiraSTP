@@ -329,7 +329,7 @@ append_and_update <- function(
                csv_separator     = config[["csv_separator"]]),
           file = file.path(cache, "settings.rds"))
 
-  message(msg$END,"\n")
+
   return(all_data)
 
 }
