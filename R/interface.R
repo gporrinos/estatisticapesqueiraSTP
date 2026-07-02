@@ -421,6 +421,7 @@ create_server <- function(wd = getwd(),
 
           withCallingHandlers({
             do.call(fun, args)
+            log("***END***\n")
           },
           message = function(m) {
             log(conditionMessage(m))
