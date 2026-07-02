@@ -159,7 +159,7 @@ download_new_submissions <- function(kobo,
 
   msg <- KobomanageR_msg(language)
   datetime_lab =  gsub(" ", "_", gsub("-", "", gsub(":", "", substr(Sys.time(),3,19))))
-
+  message(msg$START,"\n")
 
 
 
@@ -753,6 +753,7 @@ dat_info = databases[[1]]
       all_data = NULL
 
 
+    message(msg$END,"\n")
     return(list(submissions = if(exists("old_submissions")) old_submissions else NULL,
                 data        = if(length(all_data) == 0) NULL else all_data))
 
@@ -955,10 +956,9 @@ dat_info = databases[[1]]
                                      token    = token,
                                      instance = zenodo[["instance"]])
 
+    message(msg$END,"\n")
     return(list(submissions = all_submissions,
                 data        = all_data))
   }
 
-  message("","\n")
-  message("","\n")
 }

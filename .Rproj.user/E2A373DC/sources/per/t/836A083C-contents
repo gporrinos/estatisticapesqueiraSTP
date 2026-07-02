@@ -1,4 +1,0 @@
-devtools::document()
-devtools::check()
-devtools::install()
-estatisticapesqueiraSTP::start_interface()

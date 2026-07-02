@@ -421,6 +421,7 @@ create_server <- function(wd = getwd(),
 
           withCallingHandlers({
             do.call(fun, args)
+            log("***END***\n")
           },
           message = function(m) {
             log(conditionMessage(m))
@@ -521,7 +522,7 @@ create_server <- function(wd = getwd(),
                     repository_name = repository_name,
                     zenodo = zenodo,
                     token = rv$token,
-                    load_data_from = "server",
+                    load_data_from = "local",
                     artfish = artfish)
       )
 

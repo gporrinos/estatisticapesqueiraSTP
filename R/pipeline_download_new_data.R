@@ -753,6 +753,7 @@ dat_info = databases[[1]]
       all_data = NULL
 
 
+    message(msg$END,"\n")
     return(list(submissions = if(exists("old_submissions")) old_submissions else NULL,
                 data        = if(length(all_data) == 0) NULL else all_data))
 
